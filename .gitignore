@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Production builds
+client/build/
+dist/
+
+# Environment configurations and secret keys
+.env
+.env.local
+server/.env
+client/.env
+.vercel
+
+# OS Files
+.DS_Store
+Thumbs.db
