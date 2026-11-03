@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { api } from '../apiConfig';
+import { api, explain } from '../apiConfig';
 
 const STATUS = {
   not_entered: 'Chưa vào',
@@ -31,7 +31,7 @@ const AdminPage = () => {
     if (!token) return;
     api('/api/admin/teams', { token })
       .then(setData)
-      .catch((e) => { if (e.status === 401) logout(); else setError(e.message); });
+      .catch((e) => { if (e.status === 401) logout(); else setError(explain(e)); });
   }, [token, logout]);
 
   useEffect(() => {
@@ -49,7 +49,7 @@ const AdminPage = () => {
       setData(d);
       if (after) after(d);
     } catch (e) {
-      if (e.status === 401) logout(); else setError(e.message);
+      if (e.status === 401) logout(); else setError(explain(e));
     } finally {
       setBusy(false);
     }
@@ -65,7 +65,7 @@ const AdminPage = () => {
       setToken(d.token);
       setPw('');
     } catch (err) {
-      setError(err.message);
+      setError(explain(err));
     } finally {
       setBusy(false);
     }

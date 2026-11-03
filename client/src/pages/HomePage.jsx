@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { api } from '../apiConfig';
+import { api, explain } from '../apiConfig';
 import Board from '../components/Board';
 import PickPanel from '../components/PickPanel';
 
 const HomePage = () => {
   const [board, setBoard] = useState(null);
+  const [boardError, setBoardError] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -13,7 +14,16 @@ const HomePage = () => {
   const [result, setResult] = useState(null);
 
   const loadBoard = useCallback(() => {
-    api('/api/board').then(setBoard).catch(() => {});
+    api('/api/board')
+      .then((b) => {
+        if (Array.isArray(b?.slots)) {
+          setBoard(b);
+          setBoardError('');
+        } else {
+          setBoardError(explain({ status: 0, message: 'Máy chủ trả về dữ liệu không đúng' }));
+        }
+      })
+      .catch((e) => setBoardError(explain(e)));
   }, []);
 
   useEffect(() => { loadBoard(); }, [loadBoard]);
@@ -29,7 +39,7 @@ const HomePage = () => {
       setPassword('');
       setPhase('pick');
     } catch (err) {
-      setError(err.message);
+      setError(explain(err));
     } finally {
       setBusy(false);
     }
@@ -54,6 +64,8 @@ const HomePage = () => {
         <h1 className="gradient-title-hero">MFC</h1>
         <p>Chọn thứ tự pitching</p>
       </div>
+
+      {boardError && <p className="error-text" style={{ textAlign: 'center' }}>{boardError}</p>}
 
       {phase === 'enter' && (
         <form className="mfc-card panel-narrow" onSubmit={submit}>

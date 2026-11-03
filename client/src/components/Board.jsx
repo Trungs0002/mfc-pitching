@@ -1,7 +1,8 @@
 import React from 'react';
 
 const Board = ({ board }) => {
-  if (!board || board.total === 0) return null;
+  if (!board || !Array.isArray(board.slots) || board.slots.length === 0) return null;
+  const waiting = Array.isArray(board.waiting) ? board.waiting : [];
   return (
     <section style={{ marginTop: 56 }}>
       <div className="section-eyebrow">
@@ -17,7 +18,7 @@ const Board = ({ board }) => {
             </div>
           </div>
         ))}
-        {board.waiting.map((name) => (
+        {waiting.map((name) => (
           <div key={name} className="slot-card" style={{ borderStyle: 'dashed' }}>
             <div className="slot-num" style={{ color: 'var(--muted)' }}>?</div>
             <div style={{ minWidth: 0 }}>
