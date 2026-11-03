@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { api, explain } from '../apiConfig';
 import Board from '../components/Board';
 import PickPanel from '../components/PickPanel';
@@ -28,6 +28,13 @@ const HomePage = () => {
       })
       .catch((e) => setBoardError(explain(e)));
   }, []);
+
+  // Tu cap nhat lien tuc sau khi dang nhap vi cac so co the bi lay
+  useEffect(() => {
+    if (phase === 'enter') return undefined;
+    const id = setInterval(loadBoard, 3000);
+    return () => clearInterval(id);
+  }, [phase, loadBoard]);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -90,7 +97,7 @@ const HomePage = () => {
       )}
 
       {phase === 'pick' && session && (
-        <PickPanel session={session} onPicked={onPicked} onExpired={onExpired} onUpdate={loadBoard} />
+        <PickPanel session={session} onPicked={onPicked} onExpired={onExpired} onUpdate={loadBoard} board={board} />
       )}
 
       {phase === 'done' && result && (

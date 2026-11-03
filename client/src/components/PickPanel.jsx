@@ -7,7 +7,7 @@ const fmt = (ms) => {
 };
 
 // Dong ho chi de hien thi, server moi la noi quyet dinh het gio
-const PickPanel = ({ session, onPicked, onExpired, onUpdate }) => {
+const PickPanel = ({ session, onPicked, onExpired, onUpdate, board }) => {
   const [free, setFree] = useState(session.free);
   const [selected, setSelected] = useState(null);
   const [current, setCurrent] = useState(null);
@@ -17,6 +17,13 @@ const PickPanel = ({ session, onPicked, onExpired, onUpdate }) => {
   const [offset] = useState(() => new Date(session.now).getTime() - Date.now());
   const end = new Date(session.sessionEnd).getTime();
   const [remaining, setRemaining] = useState(end - (Date.now() + offset));
+
+  // Dong bo cac so con trong theo bang moi nhat
+  useEffect(() => {
+    if (board && Array.isArray(board.slots)) {
+      setFree(board.slots.filter((s) => !s.team).map((s) => s.slot));
+    }
+  }, [board]);
 
   // Het gio: neu da co so thi chot so do, chua co thi mat luot
   const finish = () => {
