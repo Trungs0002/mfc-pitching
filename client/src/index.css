@@ -371,3 +371,23 @@ img { display: block; max-width: 100%; }
   .nav-brand-text span { display: none; }
   .mfc-input { font-size: 13.5px; padding: 11px 13px; }
 }
+
+/* ─── Popup ──────────────────────────────────────────────────── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(1,1,10,.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.modal-box {
+  max-width: 380px;
+  width: 100%;
+  padding: 28px 24px;
+  text-align: center;
+}

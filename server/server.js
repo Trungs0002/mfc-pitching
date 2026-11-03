@@ -39,13 +39,11 @@ const TeamSchema = new mongoose.Schema({
 TeamSchema.index({ slot: 1 }, { unique: true, partialFilterExpression: { slot: { $type: 'number' } } });
 const Team = mongoose.model('Team', TeamSchema);
 
-// Document duy nhat: khoa phien (1 phien tai 1 thoi diem) va co "da random"
+// Document duy nhat: co "da random"
 const SettingsSchema = new mongoose.Schema({
   _id: String,
   randomDone: { type: Boolean, default: false },
   randomAt: Date,
-  activeTeam: mongoose.Schema.Types.ObjectId,
-  activeUntil: Date,
 });
 const Settings = mongoose.model('Settings', SettingsSchema);
 
@@ -102,11 +100,6 @@ async function getSettings() {
     if (e.code === 11000) return Settings.findById('main');
     throw e;
   }
-}
-
-function releaseLock(teamId) {
-  const filter = teamId ? { _id: 'main', activeTeam: teamId } : { _id: 'main' };
-  return Settings.updateOne(filter, { $set: { activeUntil: null } });
 }
 
 const NO_SLOT = { slot: { $exists: false } };
@@ -298,25 +291,15 @@ app.post('/api/enter', wrap(async (req, res) => {
     return res.status(403).json({ error: 'Team đã mất lượt' });
   }
 
-  // Khoa phien: chi 1 team trong phien. Khong dot mat khau neu khong vao duoc.
+  // Nhieu team co the o trong phien cung luc, tranh so thi DB chan trung (unique index slot).
+  // Vao phien: dot mat khau ngay (nguyen tu, chi 1 lan)
   const until = new Date(now.getTime() + SESSION_MS);
-  const locked = await Settings.findOneAndUpdate(
-    { _id: 'main', $or: [{ activeUntil: null }, { activeUntil: { $lte: now } }] },
-    { $set: { activeTeam: team._id, activeUntil: until } },
-    { new: true }
-  );
-  if (!locked) {
-    return res.status(409).json({ error: 'Hiện đang có team khác đăng ký, vui lòng chờ và thử lại.' });
-  }
-
-  // Vao phien that: dot mat khau ngay (nguyen tu, chi 1 lan)
   const burned = await Team.findOneAndUpdate(
     { _id: team._id, used: false, lost: { $ne: true }, ...NO_SLOT },
     { $set: { used: true, sessionStart: now, sessionEnd: until } },
     { new: true }
   );
   if (!burned) {
-    await releaseLock(team._id);
     await recordFail(key, now);
     return res.status(401).json({ error: 'Mật khẩu không đúng hoặc đã được sử dụng' });
   }
@@ -471,7 +454,6 @@ app.post('/api/admin/finalize', adminAuth, wrap(async (req, res) => {
     { slotSource: 'chosen', sessionEnd: { $gt: new Date() } },
     { $set: { sessionEnd: new Date() } }
   );
-  await releaseLock();
   res.json(await adminState());
 }));
 

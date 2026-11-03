@@ -4,15 +4,15 @@
 
 1. Mở link web. Bảng thứ tự pitching (số nào của nhóm nào, số nào còn trống) chỉ hiện sau khi nhóm nhập đúng mật khẩu.
 2. Khi nhận email mật khẩu, mở web và nhập mật khẩu vào ô "Nhập mật khẩu", bấm "Vào". Hệ thống tự nhận ra nhóm của bạn.
-3. Sau khi vào, bạn có 10 phút (đồng hồ đếm ngược ở góc phải). Bấm vào một số còn trống rồi bấm "Xác nhận số ...".
-4. Trong 10 phút đó bạn có thể đổi sang số trống khác. Hết 10 phút hệ thống tự đăng xuất và số hiện tại được chốt, không đổi được nữa.
+3. Sau khi vào, bạn có 10 phút (đồng hồ đếm ngược ở góc phải). Bấm vào một số còn trống rồi bấm nút "Chốt số ...". Nếu số vừa bị nhóm khác lấy, một hộp thông báo hiện lên và bạn chọn số khác.
+4. Trong 10 phút đó bạn có thể đổi sang số trống khác. Khi đổi, hệ thống hỏi xác nhận "Đổi từ số ... sang số ...?" trước khi lưu. Hết 10 phút hệ thống tự đăng xuất và số hiện tại được chốt, không đổi được nữa.
 5. Số đã được nhóm khác chọn sẽ bị khóa, bạn không chọn hoặc sửa được.
 
 **Lưu ý quan trọng**
 - Mỗi mật khẩu chỉ dùng được một lần. Đã vào là không vào lại được, kể cả bằng máy khác.
 - Không tải lại trang, không tắt tab, không mất mạng khi đang trong phiên. Nếu làm vậy bạn sẽ mất lượt.
 - Hãy chuẩn bị thiết bị và mạng ổn định trước khi mở email, và vào web ngay khi nhận mật khẩu.
-- Tại một thời điểm chỉ một nhóm được vào. Nếu thấy thông báo "Hiện đang có team khác đăng ký, vui lòng chờ và thử lại." thì chờ một lúc rồi thử lại. Mật khẩu của bạn chưa bị mất.
+- Nhiều nhóm có thể vào cùng lúc. Nếu số bạn chọn vừa bị nhóm khác lấy, một hộp thông báo hiện lên, bạn chọn số khác. Số đã có người chọn tự mờ đi.
 - Nhập sai mật khẩu 5 lần trong 1 phút thì bị khóa tạm thời khoảng 1 phút.
 - Mất lượt (vào phiên mà hết 10 phút chưa chọn) thì nhóm hiện "Chờ random". Nhóm chưa từng đăng nhập vẫn chọn được đến 15:00 ngày 4/11, sau mốc này mật khẩu bị khóa và nhóm bị random. Số cho các nhóm mất lượt được random từ các số còn lại sau khi các nhóm khác chọn xong.
 - Kết quả chính thức được công bố lúc 17:00 ngày 4/11.

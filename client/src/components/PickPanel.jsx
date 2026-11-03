@@ -14,6 +14,8 @@ const PickPanel = ({ session, onPicked, onExpired, onUpdate, board }) => {
   const currentRef = useRef(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [popup, setPopup] = useState('');
+  const [askChange, setAskChange] = useState(false);
   const [offset] = useState(() => new Date(session.now).getTime() - Date.now());
   const end = new Date(session.sessionEnd).getTime();
   const [remaining, setRemaining] = useState(end - (Date.now() + offset));
@@ -66,6 +68,9 @@ const PickPanel = ({ session, onPicked, onExpired, onUpdate, board }) => {
       if (e.status === 409 && e.data?.free) {
         setFree(e.data.free);
         setSelected(currentRef.current);
+        setPopup(e.message);
+        setBusy(false);
+        return;
       }
       if (e.status === 401 || e.status === 403) {
         finish();
@@ -102,10 +107,44 @@ const PickPanel = ({ session, onPicked, onExpired, onUpdate, board }) => {
       {error && <p className="error-text">{error}</p>}
 
       <div style={{ marginTop: 22, textAlign: 'center' }}>
-        <button className="btn-pill" disabled={!selected || busy || selected === current} onClick={confirm}>
-          {selected === current && current != null ? `Đã chọn số ${current}` : selected ? `Xác nhận số ${selected}` : 'Chọn một số'}
+        <button
+          className="btn-pill"
+          disabled={!selected || busy || selected === current}
+          onClick={() => (current != null ? setAskChange(true) : confirm())}
+        >
+          {selected === current && current != null ? `Đã chốt số ${current}` : selected ? `Chốt số ${selected}` : 'Chọn một số'}
         </button>
       </div>
+
+      {askChange && (
+        <div className="modal-backdrop" onClick={() => setAskChange(false)}>
+          <div className="mfc-card modal-box" onClick={(e) => e.stopPropagation()}>
+            <p style={{ margin: 0, fontSize: 17, fontWeight: 600 }}>
+              Đổi từ số {current} sang số {selected}?
+            </p>
+            <div style={{ marginTop: 20, display: 'flex', gap: 10, justifyContent: 'center' }}>
+              <button className="btn-outline-pill btn-pill-sm" onClick={() => setAskChange(false)}>Hủy</button>
+              <button
+                className="btn-pill btn-pill-sm"
+                onClick={() => { setAskChange(false); confirm(); }}
+              >
+                Đổi số
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {popup && (
+        <div className="modal-backdrop" onClick={() => setPopup('')}>
+          <div className="mfc-card modal-box" onClick={(e) => e.stopPropagation()}>
+            <p style={{ margin: 0, fontSize: 17, fontWeight: 600 }}>{popup}</p>
+            <div style={{ marginTop: 20 }}>
+              <button className="btn-pill btn-pill-sm" onClick={() => setPopup('')}>Đóng</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
