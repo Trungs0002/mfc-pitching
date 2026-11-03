@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { api } from '../apiConfig';
 
 const fmt = (ms) => {
@@ -10,11 +10,19 @@ const fmt = (ms) => {
 const PickPanel = ({ session, onPicked, onExpired }) => {
   const [free, setFree] = useState(session.free);
   const [selected, setSelected] = useState(null);
+  const [current, setCurrent] = useState(null);
+  const currentRef = useRef(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [offset] = useState(() => new Date(session.now).getTime() - Date.now());
   const end = new Date(session.sessionEnd).getTime();
   const [remaining, setRemaining] = useState(end - (Date.now() + offset));
+
+  // Het gio: neu da co so thi chot so do, chua co thi mat luot
+  const finish = () => {
+    if (currentRef.current != null) onPicked({ team: session.team.name, slot: currentRef.current });
+    else onExpired();
+  };
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -22,11 +30,12 @@ const PickPanel = ({ session, onPicked, onExpired }) => {
       setRemaining(r);
       if (r <= 0) {
         clearInterval(id);
-        onExpired();
+        finish();
       }
     }, 500);
     return () => clearInterval(id);
-  }, [end, offset, onExpired]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [end, offset]);
 
   useEffect(() => {
     const warn = (e) => { e.preventDefault(); e.returnValue = ''; };
@@ -35,19 +44,23 @@ const PickPanel = ({ session, onPicked, onExpired }) => {
   }, []);
 
   const confirm = async () => {
-    if (!selected || busy) return;
+    if (!selected || busy || selected === current) return;
     setBusy(true);
     setError('');
     try {
       const data = await api('/api/pick', { method: 'POST', token: session.token, body: { slot: selected } });
-      onPicked({ team: data.team.name, slot: data.slot });
+      const prev = currentRef.current;
+      setFree((f) => [...f.filter((n) => n !== data.slot), ...(prev != null ? [prev] : [])].sort((x, y) => x - y));
+      currentRef.current = data.slot;
+      setCurrent(data.slot);
+      setBusy(false);
     } catch (e) {
       if (e.status === 409 && e.data?.free) {
         setFree(e.data.free);
-        setSelected(null);
+        setSelected(currentRef.current);
       }
       if (e.status === 401 || e.status === 403) {
-        onExpired();
+        finish();
         return;
       }
       setError(e.message);
@@ -56,6 +69,7 @@ const PickPanel = ({ session, onPicked, onExpired }) => {
   };
 
   const freeSet = new Set(free);
+  if (current != null) freeSet.add(current);
 
   return (
     <div className="mfc-card" style={{ maxWidth: 760, margin: '28px auto 0', padding: 26 }}>
@@ -80,8 +94,8 @@ const PickPanel = ({ session, onPicked, onExpired }) => {
       {error && <p className="error-text">{error}</p>}
 
       <div style={{ marginTop: 22, textAlign: 'center' }}>
-        <button className="btn-pill" disabled={!selected || busy} onClick={confirm}>
-          {selected ? `Xác nhận số ${selected}` : 'Chọn một số'}
+        <button className="btn-pill" disabled={!selected || busy || selected === current} onClick={confirm}>
+          {selected === current && current != null ? `Đã chọn số ${current}` : selected ? `Xác nhận số ${selected}` : 'Chọn một số'}
         </button>
       </div>
     </div>

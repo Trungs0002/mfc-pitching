@@ -112,6 +112,7 @@ function releaseLock(teamId) {
 const NO_SLOT = { slot: { $exists: false } };
 
 function statusOf(t, now) {
+  if (t.slot != null && t.slotSource === 'chosen' && t.sessionEnd && t.sessionEnd > now) return 'in_session';
   if (t.slot != null) return t.lost ? 'lost' : 'chosen';
   if (t.lost) return 'waiting';
   if (t.used && t.sessionEnd && t.sessionEnd > now) return 'in_session';
@@ -171,7 +172,13 @@ async function settle() {
   const total = await Team.countDocuments();
   if (!s.randomDone) {
     if (total === 0) return;
-    const pending = await Team.countDocuments({ ...NO_SLOT, lost: { $ne: true } });
+    // Team da chon nhung con trong phien 10 phut van co the doi so nen chua tinh la xong
+    const pending = await Team.countDocuments({
+      $or: [
+        { ...NO_SLOT, lost: { $ne: true } },
+        { slotSource: 'chosen', sessionEnd: { $gt: now } },
+      ],
+    });
     if (pending > 0) return;
     const claimed = await Settings.findOneAndUpdate(
       { _id: 'main', randomDone: false },
@@ -287,7 +294,7 @@ app.post('/api/enter', wrap(async (req, res) => {
     { new: true }
   );
   if (!locked) {
-    return res.status(409).json({ error: 'Đang có team khác đăng ký, vui lòng thử lại sau' });
+    return res.status(409).json({ error: 'Hiện đang có team khác đăng ký, vui lòng chờ và thử lại.' });
   }
 
   // Vao phien that: dot mat khau ngay (nguyen tu, chi 1 lan)
@@ -319,27 +326,33 @@ app.post('/api/pick', teamAuth, wrap(async (req, res) => {
     return res.status(400).json({ error: 'Số không hợp lệ' });
   }
   const team = await Team.findById(req.teamId);
-  if (!team || !team.used || !team.sessionEnd || team.sessionEnd <= now || team.lost || team.slot != null) {
+  const closed = () => res.status(403).json({
+    error: 'Phiên đã hết hạn',
+    slot: team && team.slot != null ? team.slot : null,
+  });
+  // Trong 10 phut cua phien, team duoc doi sang so trong khac. Het gio la chot.
+  if (!team || !team.used || !team.sessionEnd || team.sessionEnd <= now || team.lost ||
+      (team.slot != null && team.slotSource !== 'chosen')) {
     await settle();
-    return res.status(403).json({ error: 'Phiên đã hết hạn, team mất lượt' });
+    return closed();
   }
   try {
     const r = await Team.updateOne(
-      { _id: team._id, ...NO_SLOT, lost: { $ne: true }, sessionEnd: { $gt: now } },
+      { _id: team._id, lost: { $ne: true }, sessionEnd: { $gt: now }, $or: [NO_SLOT, { slotSource: 'chosen' }] },
       { $set: { slot, slotSource: 'chosen' } }
     );
-    if (!r.modifiedCount) {
-      return res.status(403).json({ error: 'Phiên đã hết hạn, team mất lượt' });
-    }
+    if (!r.matchedCount) return closed();
   } catch (e) {
     if (e.code === 11000) {
       const f = await freeSlots();
-      return res.status(409).json({ error: 'Số này đã có người chọn', free: f.free });
+      return res.status(409).json({
+        error: 'Số này đã có người chọn',
+        free: f.free,
+        current: team.slot != null ? team.slot : null,
+      });
     }
     throw e;
   }
-  await releaseLock(team._id);
-  await settle();
   res.json({ slot, team: { name: team.name } });
 }));
 
@@ -440,6 +453,11 @@ app.post('/api/admin/finalize', adminAuth, wrap(async (req, res) => {
   await Team.updateMany(
     { ...NO_SLOT, lost: { $ne: true } },
     { $set: { lost: true, lostReason: 'finalize' } }
+  );
+  // Team dang trong phien (da chon, co the doi so) cung duoc chot ngay
+  await Team.updateMany(
+    { slotSource: 'chosen', sessionEnd: { $gt: new Date() } },
+    { $set: { sessionEnd: new Date() } }
   );
   await releaseLock();
   res.json(await adminState());
