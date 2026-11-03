@@ -1,7 +1,7 @@
 // Centralized API Base URL
 // It reads from REACT_APP_API_URL environment variable for production (Vercel)
 // and defaults to localhost for development.
-export const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+export const API_URL = (process.env.REACT_APP_API_URL || 'http://localhost:5000').trim().replace(/\/+$/, '');
 
 export async function api(path, { method = 'GET', body, token } = {}) {
   let res;
