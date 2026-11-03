@@ -2,7 +2,7 @@
 
 ## A. Dành cho các nhóm (leader và mentor)
 
-1. Mở link web. Trang hiển thị bảng thứ tự pitching: số nào của nhóm nào, số nào còn trống. Ai cũng xem được, tải lại trang để cập nhật.
+1. Mở link web. Bảng thứ tự pitching (số nào của nhóm nào, số nào còn trống) chỉ hiện sau khi nhóm nhập đúng mật khẩu.
 2. Khi nhận email mật khẩu, mở web và nhập mật khẩu vào ô "Nhập mật khẩu", bấm "Vào". Hệ thống tự nhận ra nhóm của bạn.
 3. Sau khi vào, bạn có 10 phút (đồng hồ đếm ngược ở góc phải). Bấm vào một số còn trống rồi bấm "Xác nhận số ...".
 4. Trong 10 phút đó bạn có thể đổi sang số trống khác. Hết 10 phút hệ thống tự đăng xuất và số hiện tại được chốt, không đổi được nữa.

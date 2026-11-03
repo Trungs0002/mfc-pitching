@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { api, explain } from '../apiConfig';
 import Board from '../components/Board';
 import PickPanel from '../components/PickPanel';
@@ -12,9 +12,12 @@ const HomePage = () => {
   const [phase, setPhase] = useState('enter'); // enter | pick | done | expired
   const [session, setSession] = useState(null);
   const [result, setResult] = useState(null);
+  const tokenRef = useRef('');
 
+  // Bang chi lay duoc khi da nhap dung mat khau
   const loadBoard = useCallback(() => {
-    api('/api/board')
+    if (!tokenRef.current) return;
+    api('/api/board', { token: tokenRef.current })
       .then((b) => {
         if (Array.isArray(b?.slots)) {
           setBoard(b);
@@ -26,8 +29,6 @@ const HomePage = () => {
       .catch((e) => setBoardError(explain(e)));
   }, []);
 
-  useEffect(() => { loadBoard(); }, [loadBoard]);
-
   const submit = async (e) => {
     e.preventDefault();
     if (!password.trim() || busy) return;
@@ -35,9 +36,11 @@ const HomePage = () => {
     setError('');
     try {
       const data = await api('/api/enter', { method: 'POST', body: { password } });
+      tokenRef.current = data.token;
       setSession(data);
       setPassword('');
       setPhase('pick');
+      loadBoard();
     } catch (err) {
       setError(explain(err));
     } finally {
@@ -87,7 +90,7 @@ const HomePage = () => {
       )}
 
       {phase === 'pick' && session && (
-        <PickPanel session={session} onPicked={onPicked} onExpired={onExpired} />
+        <PickPanel session={session} onPicked={onPicked} onExpired={onExpired} onUpdate={loadBoard} />
       )}
 
       {phase === 'done' && result && (

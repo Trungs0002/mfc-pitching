@@ -7,7 +7,7 @@ const fmt = (ms) => {
 };
 
 // Dong ho chi de hien thi, server moi la noi quyet dinh het gio
-const PickPanel = ({ session, onPicked, onExpired }) => {
+const PickPanel = ({ session, onPicked, onExpired, onUpdate }) => {
   const [free, setFree] = useState(session.free);
   const [selected, setSelected] = useState(null);
   const [current, setCurrent] = useState(null);
@@ -53,6 +53,7 @@ const PickPanel = ({ session, onPicked, onExpired }) => {
       setFree((f) => [...f.filter((n) => n !== data.slot), ...(prev != null ? [prev] : [])].sort((x, y) => x - y));
       currentRef.current = data.slot;
       setCurrent(data.slot);
+      if (onUpdate) onUpdate();
       setBusy(false);
     } catch (e) {
       if (e.status === 409 && e.data?.free) {

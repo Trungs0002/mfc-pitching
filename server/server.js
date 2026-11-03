@@ -237,6 +237,18 @@ function teamAuth(req, res, next) {
   }
 }
 
+// Bang thu tu chi danh cho team da nhap dung mat khau (token van dung duoc sau khi het phien)
+async function boardAuth(req, res, next) {
+  const m = (req.headers.authorization || '').match(/^Bearer (.+)$/);
+  try {
+    const p = jwt.verify(m && m[1], JWT_SECRET, { ignoreExpiration: true });
+    if (p.kind !== 'team') throw new Error('kind');
+    next();
+  } catch {
+    res.status(401).json({ error: 'Cần nhập mật khẩu để xem bảng' });
+  }
+}
+
 function adminAuth(req, res, next) {
   const m = (req.headers.authorization || '').match(/^Bearer (.+)$/);
   try {
@@ -249,7 +261,7 @@ function adminAuth(req, res, next) {
 }
 
 // --- Public ---
-app.get('/api/board', wrap(async (req, res) => {
+app.get('/api/board', boardAuth, wrap(async (req, res) => {
   await settle();
   const now = new Date();
   const s = await getSettings();
